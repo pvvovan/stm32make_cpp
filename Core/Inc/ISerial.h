@@ -18,8 +18,6 @@ namespace gnss_radar
 
             static const int32_t SERIAL_FAILURE = -1;
             static const int32_t WRITE_TIMEOUT_FAILURE = -2;
-        //	static const int WRITE_WAIT_FAILURE = -3;
-            // static const int READ_FAILURE = -4;
         };
         
     } /* serial */
