@@ -4,7 +4,6 @@
 #include <mutex>
 #include "uart.h"
 #include <memory>
-#include "TinyGPSpp.h"
 
 namespace Model
 {
@@ -56,7 +55,6 @@ namespace Model
     {
         auto serial {std::make_unique<gnss_radar::serial::uart>(4096, 4096, huart)};
         serial->available();
-        TinyGPSPlus gps{};
 
 
         HAL_TIM_PWM_Start(&hwtimer, TIM_CHANNEL_1);
@@ -66,9 +64,9 @@ namespace Model
 
             auto buf = serial->read();
             for(auto c : buf) {
-                gps.encode(c);
+		    (void)c;
             }
-            auto speed = gps.speed.kmph();
+            auto speed = 10;
             if (speed == 0)
                 speed = 1;
             auto pwm_set = get_pwm_set(speed);

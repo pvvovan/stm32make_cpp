@@ -78,7 +78,6 @@ CPP_SOURCES =  \
 Core/Src/cpp_task1.cpp \
 Core/Src/nmea2pwm.cpp \
 Core/Src/uart.cpp \
-Core/Src/TinyGPSpp.cpp
 
 
 #######################################
