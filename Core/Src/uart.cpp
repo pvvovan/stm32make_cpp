@@ -98,8 +98,11 @@ gnss_radar::serial::uart::read()
 		size = head - m_tail + rxBufferSize;
 	}
 
-	if (size <= 0) {
+	if (size == 0) {
 		return std::vector<uint8_t> { };
+	}
+	else if (size < 0) {
+		return gnss_radar::serial::ISerial::Error::ReadFailure;
 	}
 
 	std::vector<uint8_t> buffer(size);
