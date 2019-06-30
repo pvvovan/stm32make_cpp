@@ -62,10 +62,13 @@ namespace Model
             osDelay(300);
             HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
 
-            auto buf = serial->read();
-            for(auto c : buf) {
-		    (void)c;
-            }
+            auto res = serial->read();
+            if (std::holds_alternative<std::vector<uint8_t>>(res)) {
+				auto buf = std::get<std::vector<uint8_t>>(res);
+				for(auto c : buf) {
+					(void)c;
+				}
+			}
             auto speed = 10;
             if (speed == 0)
                 speed = 1;

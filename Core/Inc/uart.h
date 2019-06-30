@@ -21,9 +21,9 @@ namespace gnss_radar
 
         public:
             uart(uint32_t rxSize, uint32_t txSize, UART_HandleTypeDef& huart);
-            uint32_t available() override;
-            int32_t write(std::vector<uint8_t> data) override;
-            std::vector<uint8_t> read() override;
+            uint32_t available() const noexcept override;
+            std::variant<uint32_t, Error> write(std::vector<uint8_t> data) override;
+            std::variant<std::vector<uint8_t>, Error> read() override;
             ~uart() override = default;
 
             uart(uart&& other);

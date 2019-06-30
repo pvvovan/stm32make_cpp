@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "stm32f4xx_hal.h"
+#include <variant>
 
 namespace gnss_radar
 {
@@ -11,13 +12,18 @@ namespace gnss_radar
         class ISerial
         {
         public:
-            virtual uint32_t available() = 0;
-            virtual int32_t write(std::vector<uint8_t> data) = 0;
-            virtual std::vector<uint8_t> read() = 0;
+        enum class Error {
+                OK,
+                SerialFailure,
+                WriteTimeout,
+                WriteFailure,
+                ReadFailure
+            };
+            
+            virtual uint32_t available() const noexcept = 0;
+            virtual std::variant<uint32_t, Error> write(std::vector<uint8_t> data) = 0;
+            virtual std::variant<std::vector<uint8_t>, Error> read() = 0;
             virtual ~ISerial() = default;
-
-            static const int32_t SERIAL_FAILURE = -1;
-            static const int32_t WRITE_TIMEOUT_FAILURE = -2;
         };
         
     } /* serial */
