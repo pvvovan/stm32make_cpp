@@ -1,8 +1,6 @@
-# Rework of CubeMX Makefile to support C++
+# Rework of existing Makefile to keep objects in directory tree
 
 TARGET = gpsRadar
-DEBUG = 1
-
 BUILD_DIR = build
 
 C_SOURCES = \
@@ -49,8 +47,6 @@ Core/Src/uart.cpp
 
 PREFIX = arm-none-eabi-
 
-# The gcc compiler bin path can be defined in make command via GCC_PATH variable
-# or it can be added to the PATH environment variable.
 ifdef GCC_PATH
 	CC = $(GCC_PATH)/$(PREFIX)gcc
 	CXX = $(GCC_PATH)/$(PREFIX)g++
@@ -103,51 +99,41 @@ CPPFLAGS = $(COMN_FLAGS) -std=c++17
 
 LDSCRIPT = STM32F407VGTx_FLASH.ld
 
-LIBS = -lc -lm -lnosys
-LIBDIR =
-LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
+LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) -lc -lm -lnosys \
 	-Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -lstdc++
+
+.PHONY: all clean
+clean:
+	-rm -fR $(BUILD_DIR)
 
 .DEFAULT_GOAL := all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
 
-# list of c objects
-OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
-vpath %.c $(sort $(dir $(C_SOURCES)))
+C_OBJECTS = $(addprefix $(BUILD_DIR)/, $(C_SOURCES:.c=.o))
+CXX_OBJECTS = $(addprefix $(BUILD_DIR)/, $(CPP_SOURCES:.cpp=.o))
+ASM_OBJECTS = $(addprefix $(BUILD_DIR)/, $(ASM_SOURCES:.s=.o))
 
-# list of c++ objects
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(CPP_SOURCES:.cpp=.o)))
-vpath %.cpp $(sort $(dir $(CPP_SOURCES)))
+$(C_OBJECTS): $(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(@D)
+	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(<:.c=.lst) $< -o $@
 
-# list of ASM program objects
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
-vpath %.s $(sort $(dir $(ASM_SOURCES)))
+$(CXX_OBJECTS): $(BUILD_DIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CXX) -c $(CPPFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(<:.cpp=.lst) $< -o $@
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
-	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
-
-$(BUILD_DIR)/%.o: %.cpp Makefile | $(BUILD_DIR)
-	$(CXX) -c $(CPPFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
-
-$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
+$(ASM_OBJECTS): $(BUILD_DIR)/%.o: %.s
+	@mkdir -p $(@D)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+$(BUILD_DIR)/$(TARGET).elf: $(C_OBJECTS) $(CXX_OBJECTS) $(ASM_OBJECTS)
+	$(CC) $^ $(LDFLAGS) -o $@
 	$(SZ) $@
 
-$(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+$(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf
 	$(HEX) $< $@
 
-$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf
 	$(BIN) $< $@
 
-$(BUILD_DIR):
-	mkdir $@
-
-.PHONY: clean
-clean:
-	-rm -fR $(BUILD_DIR)
-
-# dependencies
--include $(wildcard $(BUILD_DIR)/*.d)
+DEPS = $(C_OBJECTS:.o=.d) $(CXX_OBJECTS:.o=.d) $(ASP_OBJECTS:.o=.d)
+-include $(DEPS)
