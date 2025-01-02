@@ -1,7 +1,3 @@
-# ------------------------------------------------
-# Generic Makefile (based on gcc)
-# ------------------------------------------------
-
 TARGET = gpsRadar
 DEBUG = 1
 
@@ -50,21 +46,23 @@ Core/Src/nmea2pwm.cpp \
 Core/Src/uart.cpp
 
 PREFIX = arm-none-eabi-
+
 # The gcc compiler bin path can be defined in make command via GCC_PATH variable
 # or it can be added to the PATH environment variable.
 ifdef GCC_PATH
-CC = $(GCC_PATH)/$(PREFIX)gcc
-GPP = $(GCC_PATH)/$(PREFIX)g++
-AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
-CP = $(GCC_PATH)/$(PREFIX)objcopy
-SZ = $(GCC_PATH)/$(PREFIX)size
+	CC = $(GCC_PATH)/$(PREFIX)gcc
+	GPP = $(GCC_PATH)/$(PREFIX)g++
+	AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
+	CP = $(GCC_PATH)/$(PREFIX)objcopy
+	SZ = $(GCC_PATH)/$(PREFIX)size
 else
-CC = $(PREFIX)gcc
-GPP = $(PREFIX)g++
-AS = $(PREFIX)gcc -x assembler-with-cpp
-CP = $(PREFIX)objcopy
-SZ = $(PREFIX)size
+	CC = $(PREFIX)gcc
+	GPP = $(PREFIX)g++
+	AS = $(PREFIX)gcc -x assembler-with-cpp
+	CP = $(PREFIX)objcopy
+	SZ = $(PREFIX)size
 endif
+
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
@@ -73,16 +71,11 @@ FPU = -mfpu=fpv4-sp-d16
 FLOAT-ABI = -mfloat-abi=hard
 MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 
-AS_DEFS =
-
 C_DEFS = \
 -D USE_HAL_DRIVER \
 -D STM32F407xx \
 -D USE_HAL_DRIVER \
 -D STM32F407xx
-
-AS_INCLUDES = \
--ICore/Inc
 
 C_INCLUDES = \
 -I Core/Inc \
@@ -154,7 +147,5 @@ $(BUILD_DIR):
 clean:
 	-rm -fR $(BUILD_DIR)
 
-#######################################
 # dependencies
-#######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
